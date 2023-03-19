@@ -1,0 +1,13 @@
+config 配置文件
+loin_pytorch_optimizer loin优化器，使用得时候效果不是很好
+loss 使用CrossEntropyLoss()
+三个merge文件是当有多个模型时，对模型预测结果进行融合（只是简单的取平均值）
+model 模型创建
+model_effv2 efficientnetv2版本的模型定
+oof 是使用Kfold的时候进行验证集的拆分，原本的目的是为了进行stacking模型融合准备的，但是失败了
+predict 预测文件
+process 定义了数据预处理、样本的包装
+strengthen_train 在预模型上再次训练
+train 开始训练
+utils 训练、验证、测试具体逻辑
+
