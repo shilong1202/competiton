@@ -1,13 +1,52 @@
-config 配置文件
-loin_pytorch_optimizer loin优化器，使用得时候效果不是很好
-loss 使用CrossEntropyLoss()
-三个merge文件是当有多个模型时，对模型预测结果进行融合（只是简单的取平均值）
-model 模型创建
-model_effv2 efficientnetv2版本的模型定
-oof 是使用Kfold的时候进行验证集的拆分，原本的目的是为了进行stacking模型融合准备的，但是失败了
-predict 预测文件
-process 定义了数据预处理、样本的包装
-strengthen_train 在预模型上再次训练
-train 开始训练
-utils 训练、验证、测试具体逻辑
+ICDAR 2023 DTT in Images 1: Text Manipulation Classification
 
+url:https://tianchi.aliyun.com/competition/entrance/532048/introduction?spm=5176.12281949.0.0.605a3b74H9ZI99
+
+result：81.1  68名
+  使用了efficinetb4网络进行训练，输入图片尺寸大小为[512,512]， 学习率为2e-3，使用k-fold，共5个fold，每个20epoch，使用timm库，加载预训练模型参数，再次基础上进行Fine tuning
+  最终结果采用每个fold中metric最高的一个模型进行训练，并将5轮结果取平均值，最终结果比fold4以及fold5都好，（表现了模型融合能提升效果，也可能是在前几个fold效果更好，后面反而过拟合了）
+  
+study：
+  1.拿到数据后对于数据的预处理，主要是dataloader
+  2.k-fold交叉验证
+  3.loss：
+        出现nan值：可能是学习率过大
+        loss震荡：可能是学习率过大
+        loss下降的过慢：可能是学习率过小
+  4.在训练前每个epoch的vaild阶段最好对齐官方的metirc
+  5.对于图像任务来说，大多数强有力的效果是进行数据增强
+  6.想要使用其他模型的时候，一定要先看模型图，对着源码分析模型输出
+  
+
+train_try:
+    尝试增大图片尺寸[728,728]、[1024、1024]，但是效果并没有[512，512]的好，因此认为是否是因为本次比赛的数据的篡改部分过于细致，因此大的图片尺寸学习效果不好？
+    尝试MVSS-NET模型进行图片篡改判断：
+        首先是使用mvss-net原作者提供预训练模型硬推理，成绩为3分（mvss只是对图片基本的三种篡改操作进行辨别，难道比赛数据中只有3%的数据数据move-copy、insplicing···）
+        其次尝试在预训练模型中进行fine-tuning（没有成功，程序出现sqrt异常，我认为是有开方的数过于小，因此尝试添加1e2、1e3···但依然有报错，因此fine tuning失败）
+        尝试从头开始训练，主要是问题有2个，1.数据集过少只有1w张左右图片。2.对于比赛的数据只有篡改以及真实两种类别，无法判断该篡改图片是否为mvss需要的三种类型，训练效果不好
+    尝试cat-net模型，这个模型太大，租卡到期，自己电脑不支持
+    尝试efficinetV2-M模型，依然是在预训练模型的基础上进行fine tuning 单模效果达到75左右，进行5个fold融合后的成绩为76
+    尝试resnet50模型，vaild时效果不明显，没进行测试，我认为如果再来几次调参，效果应该不错
+    尝试lion优化器，效果不好，不知道为啥，感觉可能训练的epoch太少，lr太大
+
+
+next_study：
+    模型融合
+    优化器以及loss的更换
+
+
+code文件介绍
+  config 配置文件
+  loin_pytorch_optimizer loin优化器，使用得时候效果不是很好
+  loss 使用CrossEntropyLoss()
+  三个merge文件是当有多个模型时，对模型预测结果进行融合（只是简单的取平均值）
+  model 模型创建
+  model_effv2 efficientnetv2版本的模型定
+  oof 是使用Kfold的时候进行验证集的拆分，原本的目的是为了进行stacking模型融合准备的，但是失败了
+  predict 预测文件
+  process 定义了数据预处理、样本的包装
+  strengthen_train 在预模型上再次训练
+  train 开始训练
+  utils 训练、验证、测试具体逻辑
+  
+ 
